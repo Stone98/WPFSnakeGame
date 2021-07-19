@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPFSnakeGame"
         mc:Ignorable="d"
-        Title="MainWindow" Height="540" Width="800" KeyUp="Window_KeyUp" Loaded="Window_Loaded">
+        Title="Snake Game" Height="540" Width="800" KeyUp="Window_KeyUp" Loaded="Window_Loaded">
     <Border BorderBrush="Gray" BorderThickness="5">
         <StackPanel>
             <Canvas Name="GameArea" ClipToBounds="True" Width="400" Height="400">
