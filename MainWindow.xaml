@@ -1,0 +1,18 @@
+﻿<Window x:Class="WPFSnakeGame.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPFSnakeGame"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="540" Width="800" KeyUp="Window_KeyUp" Loaded="Window_Loaded">
+    <Border BorderBrush="Gray" BorderThickness="5">
+        <StackPanel>
+            <Canvas Name="GameArea" ClipToBounds="True" Width="400" Height="400">
+
+            </Canvas>
+            <TextBlock Name="TextBlockApples" Text="Apples Eaten: 0" Foreground="Red" FontSize="32"></TextBlock>
+            <TextBlock Name="TextBlockScore" Text="High Score: 0" Foreground="Green" FontSize="32"></TextBlock>
+        </StackPanel>
+    </Border>
+</Window>
