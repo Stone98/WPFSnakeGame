@@ -459,7 +459,8 @@ namespace WPFSnakeGame
             if (ApplesEaten > HighScore)
             {
                 HighScore = ApplesEaten;
-                //TODO localStorage.setItem("HighScore", HighScore.toString());
+                GameSettings.Default.HighScore = HighScore;
+                GameSettings.Default.Save();
             }
             TextBlockScore.Text = "High Score: " + HighScore;
         }
@@ -477,14 +478,8 @@ namespace WPFSnakeGame
             SnakeDeathSound = new GameSound("Sounds/SnakeDeath.mp3");
 
             BackgroundMusic = new GameSound("Sounds/BackgroundMusic.mp3");
-            // TODO Fix Score
-            // let strHighScore = localStorage.getItem("HighScore");
-            //if (strHighScore != null)
-            //{
-            //    let intHighScore = parseInt(strHighScore, 10);
-            //    HighScore = intHighScore;
-            //    updateScores();
-            //}
+            HighScore = GameSettings.Default.HighScore;
+            updateScores();
             createGrid();
             drawApple();
             drawSnake();
