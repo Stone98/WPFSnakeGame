@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPFSnakeGame"
         mc:Ignorable="d"
-        Title="Snake Game" Height="540" Width="800" KeyUp="Window_KeyUp" Loaded="Window_Loaded">
+        Title="Snake Game" Height="570" Width="800" KeyUp="Window_KeyUp" Loaded="Window_Loaded">
     <Border BorderBrush="Gray" BorderThickness="5">
         <StackPanel>
             <Canvas Name="GameArea" ClipToBounds="True" Width="400" Height="400">
@@ -13,6 +13,7 @@
             </Canvas>
             <TextBlock Name="TextBlockApples" Text="Apples Eaten: 0" Foreground="Red" FontSize="32"></TextBlock>
             <TextBlock Name="TextBlockScore" Text="High Score: 0" Foreground="Green" FontSize="32"></TextBlock>
+            <Button Content="Restart" Click="Button_Click" HorizontalAlignment="Center" VerticalAlignment="Stretch" Width="60" Height="25"/>
         </StackPanel>
     </Border>
 </Window>

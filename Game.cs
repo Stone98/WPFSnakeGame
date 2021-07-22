@@ -20,69 +20,79 @@ namespace WPFSnakeGame
         public bool IsGameOver = false;
         int ApplesEaten = 0;
         int HighScore = 0;
-        public GameSound AppleEatenSound;
+        GameSound AppleEatenSound;
         public GameSound SnakeMovesSound;
-        public GameSound SnakeDeathSound;
+        GameSound SnakeDeathSound;
         public GameSound BackgroundMusic;
         double SnakeSquareSize = 20;
         bool snakeIsDead = false;
         TextBlock TextBlockApples;
         TextBlock TextBlockScore;
-
-        public System.Windows.Controls.Canvas canvas;
-        SnakeLocation AppleLocation = new SnakeLocation()
-        {
-            RowIndex = 7,
-            ColumnIndex = 11,
-            Direction = null,
-        };
+        System.Windows.Controls.Canvas canvas;
+        SnakeLocation AppleLocation = null;
         SnakeLocation[] slippy = null;
-
-
-
-
-
-
         bool isPaused = false;
         Key? pendingKeycode = null;
-
         string gridColor = "grey";
         string deadColor = "black";
-
-
         public Game()
+        {
+            Init();
+        }
+
+        private void Init()
         {
             List<SnakeLocation> list = new List<SnakeLocation>() {
                 new SnakeLocation() { RowIndex = 7, ColumnIndex = 4, Direction = "right" },
                 new SnakeLocation() { RowIndex = 7, ColumnIndex = 3, Direction = "right" },
                 new SnakeLocation() { RowIndex = 7, ColumnIndex = 2, Direction = "right" }
             };
+            HasPlayerStartedGame = false;
+            IsGameOver = false;
+            ApplesEaten = 0;
+            SnakeSquareSize = 20;
+            snakeIsDead = false;
             slippy = list.ToArray();
 
+            AppleLocation = new SnakeLocation()
+            {
+                RowIndex = 7,
+                ColumnIndex = 11,
+                Direction = null,
+            };
+
         }
-
-
-        string getCellId(SnakeLocation location)
+        /// <summary>
+        /// Gets the row and column of the cell
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        string GetCellId(SnakeLocation location)
         {
             return "R" + location.RowIndex + "C" + location.ColumnIndex;
         }
-
-        SnakeLocation getRandomLocation()
+        /// <summary>
+        /// Gets a random location, primarily used by the apple
+        /// </summary>
+        /// <returns></returns>
+        SnakeLocation GetRandomLocation()
         {
             Random rnd = new Random();
             int rowIndex = rnd.Next(1, GridRows) - 1;
             int columnIndex = rnd.Next(1, GridColumns) - 1;
             return new SnakeLocation() { RowIndex = rowIndex, ColumnIndex = columnIndex, Direction = null };
         }
-
-        void placeApple()
+        /// <summary>
+        /// Places apples on the grid
+        /// </summary>
+        private void PlaceApple()
         {
-            AppleLocation = getRandomLocation();
+            AppleLocation = GetRandomLocation();
             bool collidesWithSnake = false;
             for (int i = 0; i < this.slippy.Length; i++)
             {
                 var snakeSegmentLocation = this.slippy[i];
-                if (areSameLocation(AppleLocation, snakeSegmentLocation))
+                if (AreSameLocation(AppleLocation, snakeSegmentLocation))
                 {
                     collidesWithSnake = true;
                     break; //no sense checking as we are hitting the snake.
@@ -90,16 +100,35 @@ namespace WPFSnakeGame
             }
             if (collidesWithSnake)
             {
-                placeApple(); //try again.
+                PlaceApple(); //try again.
             }
         }
-
-        bool areSameLocation(SnakeLocation locationA, SnakeLocation locationB)
+        /// <summary>
+        /// Allows user to restart the game
+        /// </summary>
+        internal void Restart()
+        {
+            Init();
+            UpdateScores();
+            ClearBoard();
+            DrawApple();
+            DrawSnake();
+        }
+        /// <summary>
+        /// Checks if the two locations are the same, primarily to see if snake ate itself or snake ate an apple
+        /// </summary>
+        /// <param name="locationA"></param>
+        /// <param name="locationB"></param>
+        /// <returns>Returns true if they are the same location</returns>
+        bool AreSameLocation(SnakeLocation locationA, SnakeLocation locationB)
         {
             return locationA.RowIndex == locationB.RowIndex && locationA.ColumnIndex == locationB.ColumnIndex;
         }
-
-        bool didSnakeEatItself()
+        /// <summary>
+        /// Checks if snake ate itself
+        /// </summary>
+        /// <returns>Returns true if snake ate itself</returns>
+        bool DidSnakeEatItself()
         {
             if (this.slippy.Length > 1)
             {
@@ -107,7 +136,7 @@ namespace WPFSnakeGame
                 for (int i = 1; i < this.slippy.Length; i++)
                 {
                     var snakeBodyLocation = this.slippy[i];
-                    if (areSameLocation(snakeHeadLocation, snakeBodyLocation))
+                    if (AreSameLocation(snakeHeadLocation, snakeBodyLocation))
                     {
                         return true;
                     }
@@ -115,8 +144,12 @@ namespace WPFSnakeGame
             }
             return false;
         }
-
-        bool isOutsideGrid(SnakeLocation location)
+        /// <summary>
+        /// Checks if snake ran outside the game board
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns>Returns true if snake ran outside the game board</returns>
+        bool IsOutsideGrid(SnakeLocation location)
         {
             if (
               location.RowIndex < 0 ||
@@ -132,8 +165,12 @@ namespace WPFSnakeGame
                 return false;
             }
         }
-
-        public void handleKeyEnum(Key keyCode, bool makeMove)
+        /// <summary>
+        /// Receives a key code and determines if the snake direction should change or the game should be paused
+        /// </summary>
+        /// <param name="keyCode"></param>
+        /// <param name="makeMove"></param>
+        public void HandleKeyEnum(Key keyCode, bool makeMove)
         {
             if (IsGameOver)
             {
@@ -193,9 +230,9 @@ namespace WPFSnakeGame
                 return;
             }
 
-            if (isOutsideGrid(tempLocation))
+            if (IsOutsideGrid(tempLocation))
             {
-                killTheSnake();
+                KillTheSnake();
             }
             else
             {
@@ -203,31 +240,33 @@ namespace WPFSnakeGame
                 if (!isPaused)
                 {
                     this.slippy = this.slippy.Prepend(tempLocation).ToArray();
-                    if (areSameLocation(AppleLocation, this.slippy[0]))
+                    if (AreSameLocation(AppleLocation, this.slippy[0]))
                     {
                         ApplesEaten++;
                         AppleEatenSound.Play();
-                        updateScores();
-                        placeApple();
+                        UpdateScores();
+                        PlaceApple();
                     }
                     else
                     {
                         //remove the last segment of the snake
                         this.slippy = this.slippy.Take(this.slippy.Length - 1).ToArray();
-                        if (didSnakeEatItself())
+                        if (DidSnakeEatItself())
                         {
-                            killTheSnake();
+                            KillTheSnake();
                         }
                     }
                 }
             }
 
-            clearBoard();
-            drawSnake();
-            drawApple();
+            ClearBoard();
+            DrawSnake();
+            DrawApple();
         }
-
-        void killTheSnake()
+        /// <summary>
+        /// Kills the snake
+        /// </summary>
+        private void KillTheSnake()
         {
             if (!IsGameOver)
             {
@@ -236,12 +275,16 @@ namespace WPFSnakeGame
                 IsGameOver = true;
                 gridColor = deadColor;
                 snakeIsDead = true;
-                clearBoard();
-                drawSnake();
-                drawApple();
+                ClearBoard();
+                DrawSnake();
+                DrawApple();
             }
         }
-
+        /// <summary>
+        /// Checks if the direction key proposed matches the current direction and rejects the move
+        /// </summary>
+        /// <param name="keyCode"></param>
+        /// <returns>Returns true if key proposed matches teh current direction</returns>
         public bool IsValidMove(Key keyCode)
         {
             string snakeHeadDirection = this.slippy[0].Direction;
@@ -259,8 +302,10 @@ namespace WPFSnakeGame
 
             return Array.IndexOf(KEYS.AllKeys, keyCode) != -1;
         }
-
-        void clearBoard()
+        /// <summary>
+        /// Clears the game board
+        /// </summary>
+        private void ClearBoard()
         {
             var nextIsOdd = false;
             for (int rowIndex = 0; rowIndex < GridRows; rowIndex++)
@@ -275,8 +320,8 @@ namespace WPFSnakeGame
                         Direction = null
                     };
 
-                    string cellId = getCellId(foo);
-                    var square = getRectangleByName(cellId);
+                    string cellId = GetCellId(foo);
+                    var square = GetRectangleByName(cellId);
                     if (square != null)
                     {
                         if (snakeIsDead)
@@ -293,8 +338,10 @@ namespace WPFSnakeGame
                 }
             }
         }
-
-        void createGrid()
+        /// <summary>
+        /// Creates the game board
+        /// </summary>
+        private void CreateGrid()
         {
             double nextX = 0;
             double nextY = 0;
@@ -320,29 +367,38 @@ namespace WPFSnakeGame
                 }
             }
         }
-
-        void drawApple()
+        /// <summary>
+        /// Creates the apples
+        /// </summary>
+        private void DrawApple()
         {
-            string appleCellId = getCellId(AppleLocation);
-            var appleSquare = getRectangleByName(appleCellId);
+            string appleCellId = GetCellId(AppleLocation);
+            var appleSquare = GetRectangleByName(appleCellId);
             if (appleSquare != null)
             {
                 (appleSquare as Rectangle).Fill = Brushes.Red;
             }
         }
-
-        Rectangle getRectangleByName(string name)
+        /// <summary>
+        /// Gets a rectangle by its name (i.e. col, row)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>Returns the rectangle if found</returns>
+        private Rectangle GetRectangleByName(string name)
         {
             return canvas.Children.OfType<Rectangle>().Where(x => x.Name == name).FirstOrDefault();
         }
-        void drawSnake()
+        /// <summary>
+        /// Creates the snake
+        /// </summary>
+        private void DrawSnake()
         {
             //draw the tail first so if it eats itself the head will be on top
 
             for (int i = this.slippy.Length - 1; i > -1; i--)
             {
                 SnakeLocation segment = this.slippy[i];
-                string snakeCellId = getCellId(segment);
+                string snakeCellId = GetCellId(segment);
                 string direction = segment.Direction;
                 string className = "";
                 if (i == 0)
@@ -403,7 +459,7 @@ namespace WPFSnakeGame
                 {
                     className += " dead";
                 }
-                var snakeSegment = getRectangleByName(snakeCellId);
+                var snakeSegment = GetRectangleByName(snakeCellId);
                 if (snakeSegment != null)
                 {
                     if (snakeIsDead)
@@ -412,49 +468,53 @@ namespace WPFSnakeGame
                     }
                     else
                     {
-                        snakeSegment.Fill = Brushes.Green;
+                        snakeSegment.Fill = i == 0 ? Brushes.LawnGreen : Brushes.Green;
                     }
 
                 }
             }
         }
-
-        public void moveSnake()
+        /// <summary>
+        /// Moves the snake
+        /// </summary>
+        public void MoveSnake()
         {
             if (HasPlayerStartedGame && !IsGameOver && !isPaused)
             {
                 if (pendingKeycode != null)
                 {
                     System.Diagnostics.Debug.WriteLine("pendingKeycode " + pendingKeycode);
-                    handleKeyEnum(pendingKeycode.Value, true);
+                    HandleKeyEnum(pendingKeycode.Value, true);
                     pendingKeycode = null;
                     return;
                 }
                 string snakeDirection = slippy[0].Direction;
                 if (snakeDirection == "up")
                 {
-                    handleKeyEnum(KEYS.KeyUp[0], true);
+                    HandleKeyEnum(KEYS.KeyUp[0], true);
                 }
                 else if (snakeDirection == "down")
                 {
-                    handleKeyEnum(KEYS.KeyDown[0], true);
+                    HandleKeyEnum(KEYS.KeyDown[0], true);
                 }
                 else if (snakeDirection == "left")
                 {
-                    handleKeyEnum(KEYS.KeyLeft[0], true);
+                    HandleKeyEnum(KEYS.KeyLeft[0], true);
                 }
                 else if (snakeDirection == "right")
                 {
-                    handleKeyEnum(KEYS.KeyRight[0], true);
+                    HandleKeyEnum(KEYS.KeyRight[0], true);
                 }
             }
             var snakeHead = this.slippy[0];
             System.Diagnostics.Debug.WriteLine($"Snake Location {snakeHead.RowIndex} {snakeHead.ColumnIndex} {snakeHead.Direction}");
         }
-
-        void updateScores()
+        /// <summary>
+        /// Updates the scores
+        /// </summary>
+        private void UpdateScores()
         {
-             
+
             TextBlockApples.Text = "Apples Eaten: " + ApplesEaten;
             if (ApplesEaten > HighScore)
             {
@@ -464,8 +524,13 @@ namespace WPFSnakeGame
             }
             TextBlockScore.Text = "High Score: " + HighScore;
         }
-
-        public void go(Canvas canvas, TextBlock TextBlockApples, TextBlock TextBlockScore)
+        /// <summary>
+        /// Starts the game
+        /// </summary>
+        /// <param name="canvas"></param>
+        /// <param name="TextBlockApples"></param>
+        /// <param name="TextBlockScore"></param>
+        public void Go(Canvas canvas, TextBlock TextBlockApples, TextBlock TextBlockScore)
         {
             this.canvas = canvas;
             this.TextBlockApples = TextBlockApples;
@@ -479,10 +544,10 @@ namespace WPFSnakeGame
 
             BackgroundMusic = new GameSound("Sounds/BackgroundMusic.mp3");
             HighScore = GameSettings.Default.HighScore;
-            updateScores();
-            createGrid();
-            drawApple();
-            drawSnake();
+            UpdateScores();
+            CreateGrid();
+            DrawApple();
+            DrawSnake();
 
 
 

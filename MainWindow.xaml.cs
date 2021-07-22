@@ -23,7 +23,7 @@ namespace WPFSnakeGame
     {
         Game game = new Game();
         Timer timer = new Timer();
-        int speed = 100;
+        int speed = 150;
         public MainWindow()
         {
             InitializeComponent();
@@ -49,14 +49,14 @@ namespace WPFSnakeGame
 
             if (game.HasPlayerStartedGame)
             {
-                game.handleKeyEnum(e.Key, false);
+                game.HandleKeyEnum(e.Key, false);
             }
             else
             {
                 if (Array.IndexOf(game.KEYS.AllKeys, e.Key) != -1)
                 {
                     game.HasPlayerStartedGame = true;
-                    game.handleKeyEnum(e.Key, true);
+                    game.HandleKeyEnum(e.Key, true);
                     game.BackgroundMusic.PlayAndLoop();
                 }
             }
@@ -64,7 +64,7 @@ namespace WPFSnakeGame
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            game.go(GameArea, TextBlockApples, TextBlockScore);
+            game.Go(GameArea, TextBlockApples, TextBlockScore);
             timer.Interval = speed;
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
@@ -74,10 +74,14 @@ namespace WPFSnakeGame
         {
             this.Dispatcher.Invoke(() => // timer calls should be thread safe
             {
-                game.moveSnake();
+                game.MoveSnake();
             });
 
         }
 
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            game.Restart();
+        }
     }
 }
